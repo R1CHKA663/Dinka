@@ -1,0 +1,58 @@
+{
+  "tests_run": 7,
+  "tests_passed": 7,
+  "success_rate": 100.0,
+  "critical_issues": [],
+  "test_results": [
+    {
+      "name": "Test User Setup",
+      "success": true,
+      "details": "User ID: b7ba9097-1a93-4f84-babd-8e3cb43fcbc8",
+      "critical": false,
+      "timestamp": "2026-02-07T04:39:19.996772+00:00"
+    },
+    {
+      "name": "Cashback One-Time - Fresh User",
+      "success": true,
+      "details": "New user with no deposits and no cashback - correct state",
+      "critical": false,
+      "timestamp": "2026-02-07T04:39:20.036838+00:00"
+    },
+    {
+      "name": "Cashback One-Time - Info Message",
+      "success": true,
+      "details": "Correct one-time cashback info",
+      "critical": false,
+      "timestamp": "2026-02-07T04:39:20.036853+00:00"
+    },
+    {
+      "name": "Promo Balance - Invalid Code Handling",
+      "success": true,
+      "details": "Correctly handles invalid promo codes",
+      "critical": false,
+      "timestamp": "2026-02-07T04:39:20.112161+00:00"
+    },
+    {
+      "name": "300₽ Limit - Correct Implementation",
+      "success": true,
+      "details": "Limit: 300.0₽, Available: 0.0₽, Locked: 0₽",
+      "critical": false,
+      "timestamp": "2026-02-07T04:39:20.146860+00:00"
+    },
+    {
+      "name": "Wager Logic - No Active Wager",
+      "success": true,
+      "details": "No wager, promo available: 0.0₽",
+      "critical": false,
+      "timestamp": "2026-02-07T04:39:20.186340+00:00"
+    },
+    {
+      "name": "API Completeness - All Endpoints",
+      "success": true,
+      "details": "All required endpoints exist and respond correctly",
+      "critical": false,
+      "timestamp": "2026-02-07T04:39:20.342752+00:00"
+    }
+  ],
+  "timestamp": "2026-02-07T04:39:20.342782+00:00"
+}
