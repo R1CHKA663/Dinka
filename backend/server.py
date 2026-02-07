@@ -1786,7 +1786,7 @@ async def get_support_messages(user: dict = Depends(get_current_user)):
 
 @api_router.get("/admin/support/chats")
 async def get_support_chats(_ : bool = Depends(verify_admin_token)):
-    # Get unique user conversations
+    # Get unique user conversations with registration_number
     pipeline = [
         {"$sort": {"created_at": -1}},
         {"$group": {
@@ -1795,7 +1795,23 @@ async def get_support_chats(_ : bool = Depends(verify_admin_token)):
             "last_message": {"$first": "$message"},
             "last_time": {"$first": "$created_at"},
             "unread_count": {"$sum": {"$cond": [{"$and": [{"$eq": ["$read", False]}, {"$eq": ["$is_admin", False]}]}, 1, 0]}}
-        }}
+        }},
+        # Lookup user to get registration_number
+        {"$lookup": {
+            "from": "users",
+            "localField": "_id",
+            "foreignField": "id",
+            "as": "user_info"
+        }},
+        {"$addFields": {
+            "registration_number": {"$arrayElemAt": ["$user_info.registration_number", 0]},
+            "user_balance": {"$arrayElemAt": ["$user_info.balance", 0]},
+            "user_deposit": {"$arrayElemAt": ["$user_info.deposit", 0]}
+        }},
+        {"$project": {
+            "user_info": 0  # Remove the full user_info array
+        }},
+        {"$sort": {"last_time": -1}}
     ]
     chats = await db.support_messages.aggregate(pipeline).to_list(100)
     return {"success": True, "chats": chats}
