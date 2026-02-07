@@ -403,6 +403,24 @@ async def decrease_wager(user_id: str, bet: float):
     
     await db.users.update_one({"id": user_id}, {"$set": {"wager": new_wager}})
 
+async def check_and_disable_cashback(user_id: str):
+    """
+    Check if user claimed cashback and now has 0 balance - disable cashback permanently.
+    This prevents abuse: claim cashback -> lose -> claim again.
+    """
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        return
+    
+    # If user claimed cashback AND now has 0 balance -> disable cashback forever
+    if user.get("cashback_claimed") and user.get("balance", 0) <= 0:
+        if not user.get("cashback_claimed_and_lost"):
+            await db.users.update_one(
+                {"id": user_id},
+                {"$set": {"cashback_claimed_and_lost": True}}
+            )
+            logging.info(f"Cashback DISABLED for user {user_id} - claimed and lost")
+
 async def track_rtp_stat(game: str, bet_amount: float, win_amount: float):
     """Track RTP statistics for long-term monitoring"""
     await db.settings.update_one(
