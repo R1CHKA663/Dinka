@@ -405,21 +405,13 @@ async def decrease_wager(user_id: str, bet: float):
 
 async def check_and_disable_cashback(user_id: str):
     """
-    Check if user claimed cashback and now has 0 balance - disable cashback permanently.
-    This prevents abuse: claim cashback -> lose -> claim again.
+    This function is DISABLED - cashback should only be disabled through claim action.
+    Keeping function for backwards compatibility but it does nothing.
     """
-    user = await db.users.find_one({"id": user_id}, {"_id": 0})
-    if not user:
-        return
-    
-    # If user claimed cashback AND now has 0 balance -> disable cashback forever
-    if user.get("cashback_claimed") and user.get("balance", 0) <= 0:
-        if not user.get("cashback_claimed_and_lost"):
-            await db.users.update_one(
-                {"id": user_id},
-                {"$set": {"cashback_claimed_and_lost": True}}
-            )
-            logging.info(f"Cashback DISABLED for user {user_id} - claimed and lost")
+    # DISABLED: Do not auto-disable cashback based on balance
+    # Cashback will only be disabled after user claims it and loses balance
+    # This is handled in the claim endpoint instead
+    pass
 
 async def track_rtp_stat(game: str, bet_amount: float, win_amount: float):
     """Track RTP statistics for long-term monitoring"""
