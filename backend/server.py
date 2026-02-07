@@ -3990,7 +3990,10 @@ async def nicepay_callback(request: Request):
             # Add referral bonus
             await add_ref_bonus(user["id"], final_amount)
             
-            logging.info(f"NicePay: Payment {payment['id']} completed. User {user['id']} balance updated by {total_amount}₽")
+            # Calculate and add cashback
+            cashback = await calculate_deposit_cashback(user["id"], final_amount)
+            
+            logging.info(f"NicePay: Payment {payment['id']} completed. User {user['id']} balance updated by {total_amount}₽ (cashback: {cashback}₽)")
             return Response(content=json.dumps({"result": {"message": "Success"}}), media_type="application/json")
         
         elif result == "error":
