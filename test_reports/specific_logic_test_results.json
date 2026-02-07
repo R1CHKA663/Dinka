@@ -1,0 +1,47 @@
+{
+  "tests_run": 5,
+  "tests_passed": 5,
+  "success_rate": 100.0,
+  "issues_found": [],
+  "critical_issues": 0,
+  "high_issues": 0,
+  "medium_issues": 0,
+  "test_results": [
+    {
+      "name": "Promo Cooldown - API Structure",
+      "success": true,
+      "details": "Promo activation API correctly handles invalid codes",
+      "severity": "normal",
+      "timestamp": "2026-02-07T04:40:17.442199+00:00"
+    },
+    {
+      "name": "Edge Cases - All Calculations Correct",
+      "success": true,
+      "details": "Promo limit: 300.0, Locked: 0, Deposit available: 1000.0",
+      "severity": "normal",
+      "timestamp": "2026-02-07T04:40:17.483314+00:00"
+    },
+    {
+      "name": "Cashback Levels - Structure Valid",
+      "success": true,
+      "details": "Current level: Бронза (5%), Total levels: 6",
+      "severity": "normal",
+      "timestamp": "2026-02-07T04:40:17.523322+00:00"
+    },
+    {
+      "name": "Balance Consistency - All Fields Match",
+      "success": true,
+      "details": "Deposit: 1000.0, Promo: 0.0, Wager: 0.0",
+      "severity": "normal",
+      "timestamp": "2026-02-07T04:40:17.600494+00:00"
+    },
+    {
+      "name": "API Completeness - All Required Fields Present",
+      "success": true,
+      "details": "Both APIs return all required fields",
+      "severity": "normal",
+      "timestamp": "2026-02-07T04:40:17.675205+00:00"
+    }
+  ],
+  "timestamp": "2026-02-07T04:40:17.675252+00:00"
+}
