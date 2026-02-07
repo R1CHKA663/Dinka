@@ -2105,10 +2105,6 @@ async def claim_raceback(user: dict = Depends(get_current_user)):
     if user.get("is_demo"):
         raise HTTPException(status_code=403, detail="Кешбэк недоступен в демо-режиме. Авторизуйтесь через Telegram.")
     
-    # Check if cashback is already disabled for this user
-    if user.get("cashback_claimed_and_lost"):
-        raise HTTPException(status_code=400, detail="Кешбэк уже был использован ранее")
-    
     # Check if user has deposit this month
     has_deposit = await check_user_has_deposit_this_month(user["id"])
     if not has_deposit:
@@ -2121,12 +2117,12 @@ async def claim_raceback(user: dict = Depends(get_current_user)):
     
     raceback = user["raceback"]
     
-    # Mark that user claimed cashback - will be disabled when they lose it
+    # Transfer cashback to balance
     await db.users.update_one(
         {"id": user["id"]}, 
         {
             "$inc": {"balance": raceback, "deposit_balance": raceback},
-            "$set": {"raceback": 0, "cashback_claimed": True}
+            "$set": {"raceback": 0}
         }
     )
     
