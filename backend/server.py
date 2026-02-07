@@ -1125,6 +1125,10 @@ async def dice_play(request: Request, user: dict = Depends(get_current_user), _=
     # Track RTP statistics for Dice
     await track_rtp_stat("dice", bet, win if win > 0 else 0)
     
+    # Check if cashback should be disabled (after loss)
+    if not is_win:
+        await check_and_disable_cashback(user["id"])
+    
     # Save game to history
     await db.dice_games.insert_one({
         "id": str(uuid.uuid4()),
