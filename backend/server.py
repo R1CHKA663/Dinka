@@ -350,43 +350,40 @@ async def calculate_raceback(user_id: str, bet: float):
 
 async def calculate_deposit_cashback(user_id: str, deposit_amount: float):
     """
-    Calculate cashback from deposit - ONLY ONCE for first deposit ever.
-    Cashback is percentage of deposit amount based on user's level.
+    Calculate cashback from deposit.
+    
+    Rules:
+    - Cashback is given on EVERY deposit (% of deposit amount)
+    - % depends on user's level (total deposits)
+    - Cashback accumulates in 'raceback' field
+    - User can claim cashback only when balance is 0
+    - AFTER user claims cashback AND loses it (balance becomes 0 again) - cashback stops
+    
+    Flag 'cashback_claimed_and_lost' = True means no more cashback for this user
     """
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user:
         return 0
     
-    # Check if user already received cashback (one-time only)
-    if user.get("cashback_received", False):
-        logging.info(f"Cashback already received for user {user_id}, skipping")
+    # Check if user already claimed cashback and lost it - no more cashback ever
+    if user.get("cashback_claimed_and_lost", False):
+        logging.info(f"Cashback disabled for user {user_id} (already claimed and lost)")
         return 0
     
-    # Get user's total deposits BEFORE this one to check if it's first deposit
-    total_deposited_before = user.get("total_deposited", 0) - deposit_amount
-    
-    # Only give cashback on FIRST deposit ever
-    if total_deposited_before > 0.01:  # Small margin for float issues
-        logging.info(f"Not first deposit for user {user_id} (total before: {total_deposited_before}), no cashback")
-        return 0
-    
-    # Get cashback level based on deposit amount
-    level = get_cashback_level(deposit_amount)
+    # Get user's total deposits for level calculation
+    total_deposited = user.get("total_deposited", 0)
+    level = get_cashback_level(total_deposited)
     percent = level["percent"] / 100
     
-    # Cashback is percentage of FIRST deposit amount
+    # Cashback is percentage of THIS deposit amount
     cashback_amount = round_money(deposit_amount * percent)
     
     if cashback_amount > 0:
-        # Mark that user received their one-time cashback
         await db.users.update_one(
             {"id": user_id}, 
-            {
-                "$inc": {"raceback": cashback_amount},
-                "$set": {"cashback_received": True, "cashback_deposit_amount": deposit_amount}
-            }
+            {"$inc": {"raceback": cashback_amount}}
         )
-        logging.info(f"FIRST DEPOSIT Cashback: {cashback_amount}₽ for user {user_id} (deposit: {deposit_amount}₽, level: {level['name']})")
+        logging.info(f"Deposit Cashback: {cashback_amount}₽ for user {user_id} (deposit: {deposit_amount}₽, level: {level['name']} {level['percent']}%)")
     
     return cashback_amount
 
