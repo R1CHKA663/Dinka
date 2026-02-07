@@ -357,17 +357,9 @@ async def calculate_deposit_cashback(user_id: str, deposit_amount: float):
     - % depends on user's level (total deposits)
     - Cashback accumulates in 'raceback' field
     - User can claim cashback only when balance is 0
-    - AFTER user claims cashback AND loses it (balance becomes 0 again) - cashback stops
-    
-    Flag 'cashback_claimed_and_lost' = True means no more cashback for this user
     """
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user:
-        return 0
-    
-    # Check if user already claimed cashback and lost it - no more cashback ever
-    if user.get("cashback_claimed_and_lost", False):
-        logging.info(f"Cashback disabled for user {user_id} (already claimed and lost)")
         return 0
     
     # Get user's total deposits for level calculation
