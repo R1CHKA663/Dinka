@@ -95,7 +95,7 @@ class SpecificBusinessLogicTester:
             "code": "TESTPROMO1"
         }, expected_status=404)
         
-        if not success1:
+        if not success:
             self.log_test("Promo Cooldown - First Attempt", False, 
                          f"Unexpected response: {response1}", "high")
             return False
