@@ -3840,7 +3840,12 @@ const SupportAdminPanel = ({ adminApi }) => {
             className={`chat-item ${selectedUser?._id === chat._id ? 'active' : ''} ${chat.unread_count > 0 ? 'unread' : ''}`}
             onClick={() => setSelectedUser(chat)}
           >
-            <div className="chat-name">{chat.user_name}</div>
+            <div className="chat-name">
+              <span className="chat-reg-number" style={{color: '#6366f1', fontWeight: 'bold', marginRight: '8px'}}>
+                #{chat.registration_number || '?'}
+              </span>
+              {chat.user_name}
+            </div>
             <div className="chat-preview">{chat.last_message?.substring(0, 50)}...</div>
             <div className="chat-meta">
               <span className="chat-time">{new Date(chat.last_time).toLocaleTimeString()}</span>
@@ -3853,8 +3858,15 @@ const SupportAdminPanel = ({ adminApi }) => {
         {selectedUser ? (
           <>
             <div className="chat-header">
-              <h3>{selectedUser.user_name}</h3>
-              <small>ID: {selectedUser._id}</small>
+              <h3>
+                <span style={{color: '#6366f1', marginRight: '10px'}}>#{selectedUser.registration_number || '?'}</span>
+                {selectedUser.user_name}
+              </h3>
+              <div style={{fontSize: '12px', color: '#888', marginTop: '5px'}}>
+                <span style={{marginRight: '15px'}}>Баланс: <b style={{color: '#10b981'}}>{selectedUser.user_balance?.toFixed(2) || 0}₽</b></span>
+                <span>Депозит: <b style={{color: '#f59e0b'}}>{selectedUser.user_deposit?.toFixed(2) || 0}₽</b></span>
+              </div>
+              <small style={{display: 'block', marginTop: '3px'}}>ID: {selectedUser._id}</small>
             </div>
             <div className="chat-messages">
               {messages.map((msg, i) => (
