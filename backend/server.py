@@ -4362,30 +4362,16 @@ async def create_withdraw(request: Request, user: dict = Depends(get_current_use
     if amount < min_withdraw:
         raise HTTPException(status_code=400, detail=f"Минимальная сумма вывода: {min_withdraw}₽")
     
-    # Get withdrawable amount with promo limit (300₽)
+    # Get withdrawable amount with promo limit (300₽) and wager check
     withdrawable_info = await get_withdrawable_amount(user["id"])
     
-    # Check wager - only blocks promo balance withdrawal, not deposit balance
-    user_wager = user.get("wager", 0)
-    if user_wager > 0:
-        # If trying to withdraw from promo balance while wager is active - block
-        # But deposit balance is always withdrawable
-        if withdrawable_info["from_deposit"] <= 0 and amount > 0:
-            raise HTTPException(status_code=400, detail=f"Необходимо отыграть вейджер: {user_wager:.2f}₽ для вывода бонусных средств")
-        # Limit withdrawal to deposit balance only if wager is active
-        if amount > withdrawable_info["from_deposit"]:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Вейджер активен ({user_wager:.2f}₽). Доступно для вывода с депозита: {withdrawable_info['from_deposit']:.2f}₽"
-            )
-        # Set promo to 0 since wager blocks it
-        withdrawable_info["from_promo"] = 0
-        withdrawable_info["total"] = withdrawable_info["from_deposit"]
+    # Check if amount exceeds what's available
     if amount > withdrawable_info["total"]:
-        locked_msg = f" (из промо-баланса доступно макс 300₽, заблокировано {withdrawable_info['locked_promo']:.2f}₽)" if withdrawable_info["locked_promo"] > 0 else ""
+        wager_msg = f" (вейджер: {withdrawable_info['wager']:.2f}₽)" if withdrawable_info.get("wager", 0) > 0 else ""
+        locked_msg = f", из промо-баланса доступно макс 300₽" if withdrawable_info["locked_promo"] > 0 else ""
         raise HTTPException(
             status_code=400, 
-            detail=f"Недостаточно средств для вывода. Доступно: {withdrawable_info['total']:.2f}₽{locked_msg}"
+            detail=f"Недостаточно средств для вывода. Доступно: {withdrawable_info['total']:.2f}₽{wager_msg}{locked_msg}"
         )
     
     withdraw_id = str(uuid.uuid4())
