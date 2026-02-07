@@ -1012,6 +1012,9 @@ async def mines_press(request: Request, user: dict = Depends(get_current_user), 
         # Track RTP statistics for Mines (loss)
         await track_rtp_stat("mines", game["bet"], 0)
         
+        # Check if cashback should be disabled (user claimed and lost)
+        await check_and_disable_cashback(user["id"])
+        
         return {"success": True, "status": "lose", "cell": cell, "mines": game["mines"]}
     else:
         coeff = get_mines_coefficient(game["bombs"], len(clicked))
