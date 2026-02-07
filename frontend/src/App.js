@@ -3924,7 +3924,7 @@ const AdminDashboard = () => {
           setRtpSettings(res.data.settings || {});
         }
       } else if (tab === 'users') {
-        const res = await adminApi.get(`/admin/users?search=${search}`);
+        const res = await adminApi.get(`/admin/users?search=${encodeURIComponent(search)}`);
         if (res.data.success) setUsers(res.data.users);
       } else if (tab === 'withdraws') {
         const res = await adminApi.get('/admin/withdraws');
