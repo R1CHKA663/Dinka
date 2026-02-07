@@ -1,0 +1,50 @@
+{
+  "tests_run": 7,
+  "tests_passed": 7,
+  "success_rate": 100.0,
+  "test_results": [
+    {
+      "name": "Demo Authentication",
+      "success": true,
+      "details": "User ID: 0b7d0e8a-57a8-4638-ae4c-d4c8e2d64d8a",
+      "timestamp": "2026-02-07T04:38:33.703292+00:00"
+    },
+    {
+      "name": "Cashback API - Structure",
+      "success": true,
+      "details": "cashback_received: False",
+      "timestamp": "2026-02-07T04:38:33.741374+00:00"
+    },
+    {
+      "name": "Withdraw API - Structure",
+      "success": true,
+      "details": "Wager: 0.0, Separate balances: OK",
+      "timestamp": "2026-02-07T04:38:33.783196+00:00"
+    },
+    {
+      "name": "Promo API - Invalid Code Handling",
+      "success": true,
+      "details": "Correctly returns 404 for invalid promo",
+      "timestamp": "2026-02-07T04:38:33.829568+00:00"
+    },
+    {
+      "name": "Promo API - 24h Limitation Structure",
+      "success": true,
+      "details": "API endpoint exists and handles invalid codes correctly",
+      "timestamp": "2026-02-07T04:38:33.829584+00:00"
+    },
+    {
+      "name": "Withdrawable Logic - All Rules",
+      "success": true,
+      "details": "Deposit: 1000.0, Promo: 0.0, Locked: 0, Wager: 0.0",
+      "timestamp": "2026-02-07T04:38:33.879780+00:00"
+    },
+    {
+      "name": "Balance Separation - Structure",
+      "success": true,
+      "details": "Deposit: 1000.0, Promo: 0.0, Total: 1000.0",
+      "timestamp": "2026-02-07T04:38:33.920111+00:00"
+    }
+  ],
+  "timestamp": "2026-02-07T04:38:33.920132+00:00"
+}
