@@ -4090,7 +4090,19 @@ const AdminDashboard = () => {
         {tab === 'users' && (
           <div className="admin-users" data-testid="admin-users">
             <h2>Пользователи</h2>
-            <input type="text" value={search} onChange={e => setSearch(e.target.value)} onKeyUp={e => e.key === 'Enter' && fetchData()} placeholder="Поиск..." />
+            <div className="search-container" style={{display: 'flex', gap: '10px', marginBottom: '15px'}}>
+              <input 
+                type="text" 
+                value={search} 
+                onChange={e => setSearch(e.target.value)} 
+                onKeyUp={e => e.key === 'Enter' && fetchData()} 
+                placeholder="Поиск по номеру (#123), имени или ID..." 
+                style={{flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #333', background: '#1a1a2e', color: '#fff'}}
+              />
+              <button onClick={fetchData} style={{padding: '12px 20px', background: '#6366f1', border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer'}}>
+                🔍 Найти
+              </button>
+            </div>
             
             {editingUser && (
               <div className="edit-user-modal">
