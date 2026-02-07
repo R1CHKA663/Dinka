@@ -4871,12 +4871,15 @@ async def admin_manual_deposit(request: Request, _: bool = Depends(verify_admin_
         }
     )
     
+    # Calculate and add cashback for this deposit
+    cashback = await calculate_deposit_cashback(user_id, amount)
+    
     # Add referral bonus if user was invited
     await add_ref_bonus(user_id, amount)
     
-    updated_user = await db.users.find_one({"id": user_id}, {"_id": 0, "balance": 1, "deposit": 1})
+    updated_user = await db.users.find_one({"id": user_id}, {"_id": 0, "balance": 1, "deposit": 1, "raceback": 1})
     
-    logging.info(f"Admin manual deposit: {amount}₽ to user {user_id} by admin")
+    logging.info(f"Admin manual deposit: {amount}₽ to user {user_id} (cashback: {cashback}₽)")
     
     return {
         "success": True,
@@ -4884,7 +4887,9 @@ async def admin_manual_deposit(request: Request, _: bool = Depends(verify_admin_
         "amount": amount,
         "new_balance": updated_user["balance"],
         "total_deposited": updated_user["deposit"],
-        "message": f"Успешно начислено {amount}₽ пользователю"
+        "cashback": cashback,
+        "raceback": updated_user.get("raceback", 0),
+        "message": f"Успешно начислено {amount}₽ пользователю (кешбек: {cashback}₽)"
     }
 
 @api_router.put("/admin/rtp")
