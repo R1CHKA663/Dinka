@@ -497,22 +497,37 @@ async def add_win(user_id: str, win_amount: float, bet_source: dict):
         )
 
 async def get_withdrawable_amount(user_id: str) -> dict:
-    """Calculate withdrawable amount with promo limit (300₽)"""
+    """
+    Calculate withdrawable amount with promo limit (300₽).
+    
+    Rules:
+    - Deposit balance is ALWAYS withdrawable (no wager requirement)
+    - Promo balance limited to max 300₽ withdrawal
+    - Promo balance requires wager to be played through first
+    - Wager ONLY blocks promo_balance, never deposit_balance
+    """
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user:
-        return {"total": 0, "from_deposit": 0, "from_promo": 0, "locked_promo": 0}
+        return {"total": 0, "from_deposit": 0, "from_promo": 0, "locked_promo": 0, "wager": 0}
     
     # Get balances
     deposit_bal = user.get("deposit_balance", user.get("balance", 0))  # Backward compat
     promo_bal = user.get("promo_balance", 0)
     promo_limit = user.get("promo_withdrawal_limit", 300)
+    user_wager = user.get("wager", 0)
     
-    # Promo balance limited to 300₽
-    withdrawable_promo = min(promo_bal, promo_limit)
-    locked_promo = max(0, promo_bal - promo_limit)
-    
-    # Deposit balance - no limits
+    # Deposit balance - ALWAYS withdrawable, no wager needed
     withdrawable_deposit = deposit_bal
+    
+    # Promo balance - limited to 300₽ AND requires wager to be 0
+    if user_wager > 0:
+        # Wager is active - promo balance is LOCKED until wager is played through
+        withdrawable_promo = 0
+        locked_promo = promo_bal
+    else:
+        # Wager is complete - promo balance available up to 300₽ limit
+        withdrawable_promo = min(promo_bal, promo_limit)
+        locked_promo = max(0, promo_bal - promo_limit)
     
     total = withdrawable_deposit + withdrawable_promo
     
@@ -521,7 +536,8 @@ async def get_withdrawable_amount(user_id: str) -> dict:
         "from_deposit": withdrawable_deposit,
         "from_promo": withdrawable_promo,
         "locked_promo": locked_promo,
-        "promo_balance_full": promo_bal
+        "promo_balance_full": promo_bal,
+        "wager": user_wager
     }
 
 # Referral level system
