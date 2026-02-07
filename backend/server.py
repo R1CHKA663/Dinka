@@ -350,24 +350,43 @@ async def calculate_raceback(user_id: str, bet: float):
 
 async def calculate_deposit_cashback(user_id: str, deposit_amount: float):
     """
-    Calculate cashback from deposit (not from bets).
-    Called once when deposit is completed.
+    Calculate cashback from deposit - ONLY ONCE for first deposit ever.
+    Cashback is percentage of deposit amount based on user's level.
     """
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user:
         return 0
     
-    # Get user's total deposits and cashback level
-    total_deposited = user.get("total_deposited", 0)
-    level = get_cashback_level(total_deposited)
+    # Check if user already received cashback (one-time only)
+    if user.get("cashback_received", False):
+        logging.info(f"Cashback already received for user {user_id}, skipping")
+        return 0
+    
+    # Get user's total deposits BEFORE this one to check if it's first deposit
+    total_deposited_before = user.get("total_deposited", 0) - deposit_amount
+    
+    # Only give cashback on FIRST deposit ever
+    if total_deposited_before > 0.01:  # Small margin for float issues
+        logging.info(f"Not first deposit for user {user_id} (total before: {total_deposited_before}), no cashback")
+        return 0
+    
+    # Get cashback level based on deposit amount
+    level = get_cashback_level(deposit_amount)
     percent = level["percent"] / 100
     
-    # Cashback is percentage of DEPOSIT amount (not bet)
+    # Cashback is percentage of FIRST deposit amount
     cashback_amount = round_money(deposit_amount * percent)
     
     if cashback_amount > 0:
-        await db.users.update_one({"id": user_id}, {"$inc": {"raceback": cashback_amount}})
-        logging.info(f"Deposit cashback: {cashback_amount}₽ for user {user_id} (deposit: {deposit_amount}₽, level: {level['name']})")
+        # Mark that user received their one-time cashback
+        await db.users.update_one(
+            {"id": user_id}, 
+            {
+                "$inc": {"raceback": cashback_amount},
+                "$set": {"cashback_received": True, "cashback_deposit_amount": deposit_amount}
+            }
+        )
+        logging.info(f"FIRST DEPOSIT Cashback: {cashback_amount}₽ for user {user_id} (deposit: {deposit_amount}₽, level: {level['name']})")
     
     return cashback_amount
 
