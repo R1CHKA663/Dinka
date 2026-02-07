@@ -2091,10 +2091,10 @@ async def ref_withdraw(user: dict = Depends(get_current_user)):
 
 @api_router.get("/bonus/raceback")
 async def get_raceback(user: dict = Depends(get_current_user)):
-    """Get cashback info with level system. Cashback is ONE-TIME only on first deposit."""
+    """Get cashback info with level system."""
     total_deposited = user.get("total_deposited", 0)
     current_level = get_cashback_level(total_deposited)
-    cashback_received = user.get("cashback_received", False)
+    cashback_disabled = user.get("cashback_claimed_and_lost", False)
     
     # Find next level
     next_level = None
@@ -2110,9 +2110,9 @@ async def get_raceback(user: dict = Depends(get_current_user)):
         "level": current_level,
         "next_level": next_level,
         "levels": CASHBACK_LEVELS,
-        "cashback_received": cashback_received,
-        "cashback_deposit_amount": user.get("cashback_deposit_amount", 0),
-        "info": "Кешбек начисляется ОДИН раз при первом пополнении (процент зависит от суммы депозита)"
+        "cashback_disabled": cashback_disabled,
+        "cashback_claimed": user.get("cashback_claimed", False),
+        "info": "Кешбек начисляется при каждом депозите. После забора и слива кешбека - он отключается навсегда."
     }
 
 @api_router.post("/bonus/raceback/claim")
