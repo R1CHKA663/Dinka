@@ -4474,8 +4474,9 @@ async def get_withdraw_info(user: dict = Depends(get_current_user)):
         "locked_promo": withdrawable["locked_promo"],
         "promo_limit": user.get("promo_withdrawal_limit", 300),
         "balances": balances,
-        "wager": user.get("wager", 0),
-        "has_deposit_this_month": await check_user_has_deposit_this_month(user["id"])
+        "wager": withdrawable.get("wager", 0),  # Use wager from withdrawable calculation
+        "has_deposit_this_month": await check_user_has_deposit_this_month(user["id"]),
+        "wager_info": "Вейджер блокирует только бонусный баланс. Депозит доступен для вывода всегда." if withdrawable.get("wager", 0) > 0 else None
     }
 
 @api_router.post("/withdraw/callback/1plat")
