@@ -1608,6 +1608,9 @@ async def crash_cashout(bet_id: str, request: Request, user: dict = Depends(get_
         await calculate_raceback(user["id"], crash_bet["bet"])
         await track_rtp_stat("crash", crash_bet["bet"], 0)
         
+        # Check if cashback should be disabled
+        await check_and_disable_cashback(user["id"])
+        
         logging.info(f"Cashout FAILED: {cashout_multiplier} > {crash_bet['crash_point']}")
         
         user_data = await db.users.find_one({"id": user["id"]}, {"_id": 0, "balance": 1})
