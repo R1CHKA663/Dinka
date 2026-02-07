@@ -1218,6 +1218,10 @@ async def bubbles_play(request: Request, user: dict = Depends(get_current_user),
     # Track RTP statistics for Bubbles (track net result, not gross win)
     await track_rtp_stat("bubbles", bet, win)
     
+    # Check if cashback should be disabled (after loss)
+    if not is_win:
+        await check_and_disable_cashback(user["id"])
+    
     # Save game to history
     await db.bubbles_games.insert_one({
         "id": str(uuid.uuid4()),
