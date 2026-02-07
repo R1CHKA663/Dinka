@@ -1400,6 +1400,9 @@ async def tower_step(request: Request, user: dict = Depends(get_current_user), _
         # Track RTP statistics for Tower (loss)
         await track_rtp_stat("tower", game["bet"], 0)
         
+        # Check if cashback should be disabled
+        await check_and_disable_cashback(user["id"])
+        
         return {
             "success": True,
             "status": "lose",
