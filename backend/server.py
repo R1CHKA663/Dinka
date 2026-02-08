@@ -24,6 +24,7 @@ from decimal import Decimal, ROUND_DOWN
 from collections import defaultdict
 import asyncio
 import time
+import aiomysql
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
