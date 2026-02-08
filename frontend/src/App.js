@@ -4305,6 +4305,168 @@ const AdminDashboard = () => {
   );
 };
 
+// ============== SLOTS PAGE ==============
+const SlotsPage = () => {
+  const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchGames();
+  }, [page, search]);
+
+  const fetchGames = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/slots/games?page=${page}&limit=50&search=${search}`);
+      if (res.data.success) {
+        setGames(res.data.games);
+        setTotalPages(res.data.pages);
+      }
+    } catch (e) {
+      toast.error('Ошибка загрузки игр');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="slots-page" data-testid="slots-page">
+      <div className="slots-header">
+        <h1><i className="fa-solid fa-slot-machine"></i> 🎰 Слоты</h1>
+        <p>Более 3000 игр от лучших провайдеров</p>
+        <div className="slots-search">
+          <input 
+            type="text" 
+            placeholder="Поиск игр..." 
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          />
+          <i className="fa-solid fa-search"></i>
+        </div>
+      </div>
+      
+      {loading ? (
+        <div className="loading"><i className="fa-solid fa-spinner fa-spin"></i> Загрузка...</div>
+      ) : (
+        <>
+          <div className="slots-grid">
+            {games.map(game => (
+              <div 
+                key={game.id} 
+                className="slot-card"
+                onClick={() => navigate(`/slots/${game.name}`)}
+                data-testid={`slot-${game.name}`}
+              >
+                <div className="slot-img">
+                  <img 
+                    src={`http://localhost:8080/images/games/${game.name}.png`} 
+                    alt={game.title}
+                    onError={(e) => { e.target.src = '/assets/images/games/default-slot.png'; }}
+                  />
+                </div>
+                <div className="slot-info">
+                  <h3>{game.title}</h3>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="slots-pagination">
+              <button 
+                onClick={() => setPage(p => Math.max(1, p - 1))} 
+                disabled={page === 1}
+              >
+                ← Назад
+              </button>
+              <span>Страница {page} из {totalPages}</span>
+              <button 
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
+                disabled={page === totalPages}
+              >
+                Вперёд →
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+// Slot Game Component (iframe to PHP)
+const SlotGame = () => {
+  const { gameName } = useParams();
+  const { user } = useAuth();
+  const [gameUrl, setGameUrl] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [gameInfo, setGameInfo] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      toast.error('Войдите для игры в слоты');
+      navigate('/login');
+      return;
+    }
+    startGame();
+  }, [gameName, user]);
+
+  const startGame = async () => {
+    setLoading(true);
+    try {
+      // Get game info
+      const infoRes = await api.get(`/slots/game/${gameName}`);
+      if (infoRes.data.success) {
+        setGameInfo(infoRes.data.game);
+      }
+      
+      // Create session
+      const res = await api.post('/slots/session', { game_name: gameName });
+      if (res.data.success) {
+        setGameUrl(res.data.game_url);
+      } else {
+        toast.error('Ошибка запуска игры');
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Ошибка запуска игры');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="slot-game-page" data-testid="slot-game-page">
+      <div className="slot-game-header">
+        <button onClick={() => navigate('/slots')} className="back-btn">
+          <i className="fa-solid fa-arrow-left"></i> Назад к слотам
+        </button>
+        {gameInfo && <h2>{gameInfo.title}</h2>}
+        {user && <span className="balance-info">Баланс: {user.balance?.toFixed(2)}₽</span>}
+      </div>
+      
+      {loading ? (
+        <div className="loading"><i className="fa-solid fa-spinner fa-spin"></i> Загрузка игры...</div>
+      ) : gameUrl ? (
+        <div className="slot-game-container">
+          <iframe 
+            src={gameUrl} 
+            title={gameInfo?.title || 'Slot Game'}
+            allowFullScreen
+          />
+        </div>
+      ) : (
+        <div className="error">Не удалось загрузить игру</div>
+      )}
+    </div>
+  );
+};
+
+// Import useParams
+import { useParams } from 'react-router-dom';
+
 // Protected Route
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
