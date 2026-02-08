@@ -1,0 +1,2 @@
+{"callid":"e9e7fe879363207779782c7d1472c491","controller":"player","action":"login","username":"demo1","userpass":"letmein123","version":"2.0.0.5"}
+{"callid":"3fbdbf2596e5899350e6a2c8386979eb","controller":"player","action":"login","username":"demo1","userpass":"letmein123","version":"2.0.0.5"}
