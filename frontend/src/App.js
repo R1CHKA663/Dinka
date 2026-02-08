@@ -4464,9 +4464,6 @@ const SlotGame = () => {
   );
 };
 
-// Import useParams
-import { useParams } from 'react-router-dom';
-
 // Protected Route
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
