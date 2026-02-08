@@ -5155,6 +5155,190 @@ async def add_security_headers(request: Request, call_next):
         response.headers["Expires"] = "0"
     return response
 
+# ============== SLOTS API (PHP Bridge) ==============
+
+# MySQL connection pool for slots
+slots_pool = None
+
+async def get_slots_pool():
+    global slots_pool
+    if slots_pool is None:
+        slots_pool = await aiomysql.create_pool(
+            host='127.0.0.1',
+            port=3306,
+            user='casino',
+            password='casino123',
+            db='casino_slots',
+            autocommit=True
+        )
+    return slots_pool
+
+@api_router.get("/slots/games")
+async def get_slots_games(
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, le=200),
+    search: str = Query("", max_length=100)
+):
+    """Get list of available slot games"""
+    try:
+        pool = await get_slots_pool()
+        async with pool.acquire() as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                offset = (page - 1) * limit
+                
+                if search:
+                    await cur.execute(
+                        "SELECT id, name, title FROM w_games WHERE view = 1 AND (title LIKE %s OR name LIKE %s) ORDER BY id LIMIT %s OFFSET %s",
+                        (f"%{search}%", f"%{search}%", limit, offset)
+                    )
+                else:
+                    await cur.execute(
+                        "SELECT id, name, title FROM w_games WHERE view = 1 ORDER BY id LIMIT %s OFFSET %s",
+                        (limit, offset)
+                    )
+                games = await cur.fetchall()
+                
+                # Get total count
+                await cur.execute("SELECT COUNT(*) as total FROM w_games WHERE view = 1")
+                total = (await cur.fetchone())['total']
+                
+        return {
+            "success": True,
+            "games": games,
+            "total": total,
+            "page": page,
+            "pages": (total + limit - 1) // limit
+        }
+    except Exception as e:
+        logging.error(f"Slots games error: {e}")
+        return {"success": False, "error": str(e), "games": [], "total": 0}
+
+@api_router.get("/slots/game/{game_name}")
+async def get_slot_game_info(game_name: str):
+    """Get slot game info"""
+    try:
+        pool = await get_slots_pool()
+        async with pool.acquire() as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute(
+                    "SELECT id, name, title, bet, denomination FROM w_games WHERE name = %s AND view = 1",
+                    (game_name,)
+                )
+                game = await cur.fetchone()
+                if not game:
+                    raise HTTPException(status_code=404, detail="Game not found")
+                    
+        return {"success": True, "game": game}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Slot game info error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/slots/session")
+async def create_slot_session(request: Request, user: dict = Depends(get_current_user)):
+    """Create a slot game session - links our user to PHP slots"""
+    data = await request.json()
+    game_name = data.get("game_name")
+    
+    if not game_name:
+        raise HTTPException(status_code=400, detail="game_name required")
+    
+    # Check user balance
+    if user["balance"] < 1:
+        raise HTTPException(status_code=400, detail="Недостаточно средств")
+    
+    # Generate session token for PHP slots
+    session_token = secrets.token_urlsafe(32)
+    
+    # Store session in MongoDB
+    session = {
+        "id": session_token,
+        "user_id": user["id"],
+        "user_name": user.get("name", "Player"),
+        "game_name": game_name,
+        "balance": user["balance"],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "active": True
+    }
+    await db.slot_sessions.insert_one(session)
+    
+    # PHP slots URL
+    slots_url = f"http://localhost:8080/game/{game_name}?token={session_token}"
+    
+    return {
+        "success": True,
+        "session_token": session_token,
+        "game_url": slots_url,
+        "balance": user["balance"]
+    }
+
+@api_router.get("/slots/balance/{session_token}")
+async def get_slot_balance(session_token: str):
+    """Called by PHP slots to get user balance"""
+    session = await db.slot_sessions.find_one({"id": session_token, "active": True}, {"_id": 0})
+    if not session:
+        return {"success": False, "balance": 0}
+    
+    user = await db.users.find_one({"id": session["user_id"]}, {"_id": 0, "balance": 1})
+    if not user:
+        return {"success": False, "balance": 0}
+    
+    return {"success": True, "balance": user["balance"]}
+
+@api_router.post("/slots/bet")
+async def slot_bet(request: Request):
+    """Called by PHP slots when user places a bet"""
+    data = await request.json()
+    session_token = data.get("token")
+    bet_amount = float(data.get("bet", 0))
+    
+    if not session_token or bet_amount <= 0:
+        return {"success": False, "error": "Invalid request"}
+    
+    session = await db.slot_sessions.find_one({"id": session_token, "active": True}, {"_id": 0})
+    if not session:
+        return {"success": False, "error": "Invalid session"}
+    
+    user = await db.users.find_one({"id": session["user_id"]}, {"_id": 0})
+    if not user or user["balance"] < bet_amount:
+        return {"success": False, "error": "Insufficient balance"}
+    
+    # Deduct bet
+    await db.users.update_one(
+        {"id": session["user_id"]},
+        {"$inc": {"balance": -bet_amount, "deposit_balance": -bet_amount}}
+    )
+    
+    user = await db.users.find_one({"id": session["user_id"]}, {"_id": 0, "balance": 1})
+    return {"success": True, "balance": user["balance"]}
+
+@api_router.post("/slots/win")
+async def slot_win(request: Request):
+    """Called by PHP slots when user wins"""
+    data = await request.json()
+    session_token = data.get("token")
+    win_amount = float(data.get("win", 0))
+    
+    if not session_token:
+        return {"success": False, "error": "Invalid request"}
+    
+    session = await db.slot_sessions.find_one({"id": session_token, "active": True}, {"_id": 0})
+    if not session:
+        return {"success": False, "error": "Invalid session"}
+    
+    if win_amount > 0:
+        # Add win
+        await db.users.update_one(
+            {"id": session["user_id"]},
+            {"$inc": {"balance": win_amount, "deposit_balance": win_amount}}
+        )
+    
+    user = await db.users.find_one({"id": session["user_id"]}, {"_id": 0, "balance": 1})
+    return {"success": True, "balance": user["balance"]}
+
+# ============== END SLOTS API ==============
+
 app.include_router(api_router)
 
 app.add_middleware(
