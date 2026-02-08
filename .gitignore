@@ -84,3 +84,7 @@ slots/storage/app/GeoIP2-City_20201006/GeoIP2-City.mmdb
 # Environment files
 *.env
 *.env.*
+-e 
+# Environment files
+*.env
+*.env.*
