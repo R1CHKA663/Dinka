@@ -4385,6 +4385,8 @@ function App() {
                     <Route path="/bonus" element={<ProtectedRoute><Bonus /></ProtectedRoute>} />
                     <Route path="/ref" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
                     <Route path="/support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
+                    <Route path="/slots" element={<SlotsPage />} />
+                    <Route path="/slots/:gameName" element={<SlotGame />} />
                   </Routes>
                 </main>
                 <Footer />
