@@ -8728,3 +8728,188 @@ main {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ============== SLOTS STYLES ============== */
+.slots-page {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.slots-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.slots-header h1 {
+  font-size: 2.5rem;
+  color: #f59e0b;
+  margin-bottom: 10px;
+}
+
+.slots-header p {
+  color: #888;
+}
+
+.slots-search {
+  max-width: 400px;
+  margin: 20px auto;
+  position: relative;
+}
+
+.slots-search input {
+  width: 100%;
+  padding: 15px 50px 15px 20px;
+  border-radius: 30px;
+  border: 2px solid #333;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 16px;
+}
+
+.slots-search i {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.slot-card {
+  background: linear-gradient(145deg, #1a1a2e, #16162a);
+  border-radius: 15px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #333;
+}
+
+.slot-card:hover {
+  transform: translateY(-5px);
+  border-color: #f59e0b;
+  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+}
+
+.slot-img {
+  height: 140px;
+  overflow: hidden;
+  background: #0a0a15;
+}
+
+.slot-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slot-info {
+  padding: 15px;
+}
+
+.slot-info h3 {
+  font-size: 14px;
+  color: #fff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slots-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
+  padding: 20px;
+}
+
+.slots-pagination button {
+  padding: 12px 25px;
+  border-radius: 25px;
+  border: none;
+  background: #6366f1;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.slots-pagination button:disabled {
+  background: #333;
+  cursor: not-allowed;
+}
+
+.slots-pagination span {
+  color: #888;
+}
+
+/* Slot Game Page */
+.slot-game-page {
+  padding: 20px;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+}
+
+.slot-game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #1a1a2e;
+  border-radius: 10px;
+}
+
+.slot-game-header .back-btn {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  background: #333;
+  color: #fff;
+  cursor: pointer;
+}
+
+.slot-game-header h2 {
+  color: #f59e0b;
+  margin: 0;
+}
+
+.slot-game-header .balance-info {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.slot-game-container {
+  flex: 1;
+  border-radius: 15px;
+  overflow: hidden;
+  background: #000;
+}
+
+.slot-game-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+@media (max-width: 768px) {
+  .slots-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  
+  .slot-img {
+    height: 100px;
+  }
+  
+  .slots-header h1 {
+    font-size: 1.8rem;
+  }
+}
