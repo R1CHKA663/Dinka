@@ -79,3 +79,4 @@ agenthub/agents/youtube/db
 # Mobile development
 android-sdk/ slots/storage/app/GeoIP2-City_20201006/GeoIP2-City.mmdb
 slots/storage/logs/laravel.log
+slots/storage/app/GeoIP2-City_20201006/GeoIP2-City.mmdb
