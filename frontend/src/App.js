@@ -4354,18 +4354,15 @@ const SlotsPage = () => {
         <>
           <div className="slots-grid">
             {games.map(game => (
-              <div 
-                key={game.id} 
+              <div key={game.id} 
                 className="slot-card"
                 onClick={() => navigate(`/slots/${game.name}`)}
                 data-testid={`slot-${game.name}`}
               >
-                <div className="slot-img">
-                  <img 
-                    src={`http://localhost:8080/images/games/${game.name}.png`} 
-                    alt={game.title}
-                    onError={(e) => { e.target.src = '/assets/images/games/default-slot.png'; }}
-                  />
+                <div className="slot-img" style={{background: `linear-gradient(135deg, hsl(${game.id * 37 % 360}, 70%, 30%), hsl(${game.id * 73 % 360}, 60%, 20%))`}}>
+                  <div style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px'}}>
+                    🎰
+                  </div>
                 </div>
                 <div className="slot-info">
                   <h3>{game.title}</h3>
